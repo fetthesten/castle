@@ -3,10 +3,10 @@ extends Node
 
 var tiles = {}
 
-export(int) var tile_width
-export(int) var tile_height
-export(int) var tile_spacing
-export(Texture) var texture
+export(int) var tile_width = 16
+export(int) var tile_height = 16
+export(int) var tile_spacing = 1
+var tex_size = Vector2(0,0)
 var xstep
 var ystep
 
@@ -24,27 +24,43 @@ var preview_updated = false
 
 var root_node
 var preview_node
+var tile_grid
 
 func _enter_tree():
-	preview_node = Node.new()
-	preview_node.name = 'Preview'
-	add_child(preview_node)
-	preview_node.set_owner(self)
-	root_node = Node.new()
-	root_node.name = 'Tilesheet'
-	add_child(root_node)
-	root_node.set_owner(self)
+	if not has_node('Preview'):
+		preview_node = Sprite.new()
+		preview_node.name = 'Preview'
+		add_child(preview_node)
+		preview_node.set_owner(self)
+	else:
+		preview_node = $Preview
+	if not preview_node.has_node('TileGrid'):
+		tile_grid = Control.new()
+		tile_grid.name = 'TileGrid'
+		preview_node.add_child(tile_grid)
+		tile_grid.set_owner(preview_node)
+		tile_grid.set_script(load('res://scr/tileset_preview.gd'))
+	else:
+		tile_grid = $Preview/TileGrid
+	
+	if not has_node('Tileset'):
+		root_node = Node.new()
+		root_node.name = 'Tileset'
+		add_child(root_node)
+		root_node.set_owner(self)
+	else:
+		root_node = $Tileset
+	
+	preview_node.connect('texture_changed', self, 'update_tile_preview')
 
 func update_tile_preview():
 	tiles.clear()
-	
-	tile_width = int($"Control Grid/EWidth".value)
-	tile_height = int($"Control Grid/EHeight".value)
-	tile_spacing = int($"Control Grid/ESpacing".value)
+
 	ystep =  tile_height + tile_spacing
 	xstep =  tile_width + tile_spacing
-	for y in range(0, $TileSheetTex.rect_size.y, ystep):
-		for x in range(0, $TileSheetTex.rect_size.x, xstep):
+	tex_size = preview_node.texture.get_size()
+	for y in range(0, tex_size.y, ystep):
+		for x in range(0, tex_size.x, xstep):
 			var tile = {}
 			tile['rect'] = Rect2(x, y, tile_width, tile_height)
 			tile['collider'] = TILE_NO_COLLIDER
@@ -53,8 +69,8 @@ func update_tile_preview():
 	update_tile_draw()
 
 func update_tile_draw():
-	$TileSheetTex/TilePreview.rect_size = $TileSheetTex.texture.get_size()
-	$TileSheetTex/TilePreview.tile_drawz.clear()
+	tile_grid.rect_size = tex_size
+	tile_grid.tile_drawz.clear()
 	for id in tiles.keys():
 		var tile = tiles[id]
 		var tdraw = {}

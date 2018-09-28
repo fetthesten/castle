@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://scr/tileset_redux.gd" type="Script" id=1]
+[ext_resource path="res://gfx/roguelikeSheet_transparent.png" type="Texture" id=2]
+
+[node name="Node" type="Node" index="0"]
+
+script = ExtResource( 1 )
+tile_width = 16
+tile_height = 16
+tile_spacing = 1
+
+[node name="Preview" type="Sprite" parent="." index="0"]
+
+texture = ExtResource( 2 )
+
+[node name="Tileset" type="Node" parent="." index="1"]
+
+
